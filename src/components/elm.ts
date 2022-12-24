@@ -1,5 +1,7 @@
+import { sACN2VideoCore } from "../sACN2VideoCore";
+
 export abstract class Elm {
-    constructor() {
+    constructor(readonly ctx: sACN2VideoCore) {
 
     }
 

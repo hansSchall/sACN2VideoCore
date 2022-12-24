@@ -54,58 +54,44 @@ export function compileShader(gl: WebGL2RenderingContext, vertexCode: string, fr
     }
 }
 
-export function resizeCanvasToDisplaySize(canvas: HTMLCanvasElement, gl: WebGLRenderingContext) {
-    const displayWidth = canvas.clientWidth;
-    const displayHeight = canvas.clientHeight;
-    const needResize = canvas.width !== displayWidth ||
-        canvas.height !== displayHeight;
-    if (needResize) {
-        canvas.width = displayWidth;
-        canvas.height = displayHeight;
-    }
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    return needResize;
-}
-
 export function vec2(x: number, y: number): vec2 {
     return [x, y];
 }
 export type vec2 = [number, number];
-export type TransformProps = [vec2, vec2, vec2, vec2];
-export const transformProps: TransformProps = [
-    vec2(0, 0),
-    vec2(1, 0),
-    vec2(0, 1),
-    vec2(1, 1)
-]
+// export type TransformProps = [vec2, vec2, vec2, vec2];
+// export const transformProps: TransformProps = [
+//     vec2(0, 0),
+//     vec2(1, 0),
+//     vec2(0, 1),
+//     vec2(1, 1)
+// ]
 
-export function int(val: string | number) {
-    if (typeof val == "number") {
-        return val;
-    } else {
-        return parseInt(val);
-    }
+export function _int(val: string | number) {
+    return parseInt(val as string);
+}
+export function _float(val: string | number) {
+    return parseFloat(val as string);
 }
 
-export type Pos = {
-    x: number,
-    y: number,
-    h: number,
-    w: number
-}
+// export type Pos = {
+//     x: number,
+//     y: number,
+//     h: number,
+//     w: number
+// }
 
-export function Pos2Buffer({ x, y, h, w }: Pos) {
-    return new Float32Array([x, y, x + w, y, x + w, y + h, x, y, x, y + h, x + w, y + h]);
-}
+// export function Pos2Buffer({ x, y, h, w }: Pos) {
+//     return new Float32Array([x, y, x + w, y, x + w, y + h, x, y, x, y + h, x + w, y + h]);
+// }
 
-export function mergeTransformMatrices([aa, ab]: [(number[] | null), (number[] | null)], [ba, bb]: [(number[] | null), (number[] | null)]): [number[], number[]] {
+export function mergeTransformMatrices([aa, ab]: [(mat3 | null), (mat3 | null)], [ba, bb]: [(mat3 | null), (mat3 | null)]): [mat3, mat3] {
     return [mergeTransformMatrix(aa, ba), mergeTransformMatrix(ab, bb)];
 }
 
-export function mergeTransformMatrix(a: number[] | null, b: number[] | null): number[] {
+export function mergeTransformMatrix(a: mat3 | null, b: mat3 | null): mat3 {
     if (a) {
         if (b) {
-            return m3.multiply2(a, b);
+            return mat3.multiply2(a, b);
         } else {
             return a;
         }
@@ -113,13 +99,13 @@ export function mergeTransformMatrix(a: number[] | null, b: number[] | null): nu
         if (b) {
             return b;
         } else {
-            return m3.empty();
+            return mat3.empty;
         }
     }
 }
 
 // from https://webglfundamentals.org/
-// (adapted)
+// (adapted and enhanced)
 // License:
 // # Copyright 2021 GFXFundamentals.
 // # All rights reserved.
@@ -150,22 +136,28 @@ export function mergeTransformMatrix(a: number[] | null, b: number[] | null): nu
 // #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-export const m3 = {
-    multiply(...mats_: (number[] | null)[]): number[] {
-        const mats: number[][] = mats_.filter(_ => _ !== null) as any;
+export type mat3 = [
+    number, number, number,
+    number, number, number,
+    number, number, number,
+]
+
+export const mat3 = {
+    multiply(...mats_: (mat3 | null)[]): mat3 {
+        const mats: mat3[] = mats_.filter(_ => _ !== null) as any;
         if (mats.length === 0) {
-            return m3.empty();
+            return mat3.empty;
         } else if (mats.length === 1) {
             return mats[0];
         } else if (mats.length === 2) {
             const [a, b] = mats;
-            return m3.multiply2(a, b);
+            return mat3.multiply2(a, b);
         } else {
             const [a, b, ...more] = mats;
-            return m3.multiply(m3.multiply2(a, b), ...more);
+            return mat3.multiply(mat3.multiply2(a, b), ...more);
         }
     },
-    multiply2(a: number[], b: number[]) {
+    multiply2(a: mat3, b: mat3): mat3 {
         const a00 = a[0 * 3 + 0];
         const a01 = a[0 * 3 + 1];
         const a02 = a[0 * 3 + 2];
@@ -197,7 +189,7 @@ export const m3 = {
             b20 * a02 + b21 * a12 + b22 * a22,
         ];
     },
-    translation(tx: number, ty: number) {
+    translation(tx: number, ty: number): mat3 {
         return [
             1, 0, 0,
             0, 1, 0,
@@ -205,7 +197,7 @@ export const m3 = {
         ];
     },
 
-    rotation(angle: number, unit: "rad" | "deg" = "deg") {
+    rotation(angle: number, unit: "rad" | "deg" = "deg"): mat3 {
         const angleInRadians = unit == "deg" ? angle / 360 * Math.PI * 2 : angle;
         var c = Math.cos(-angleInRadians);
         var s = Math.sin(-angleInRadians);
@@ -216,7 +208,7 @@ export const m3 = {
         ];
     },
 
-    scaling(sx: number, sy: number) {
+    scaling(sx: number, sy: number): mat3 {
         return [
             sx, 0, 0,
             0, sy, 0,
@@ -224,12 +216,11 @@ export const m3 = {
         ];
     },
 
-    empty() {
+    get empty(): mat3 {
         return [
             1, 0, 0,
             0, 1, 0,
             0, 0, 1,
         ]
     }
-
 };

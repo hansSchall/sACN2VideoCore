@@ -3,12 +3,15 @@ precision lowp int;
 
 varying vec2 v_texturePos;
 
-uniform sampler2D u_texture;
+uniform sampler2D t_texture;
+uniform sampler2D t_mask;
+uniform sampler2D t_fbTex;
+
 uniform lowp int u_mode;
-uniform float u_opacity;
-uniform sampler2D u_mask;
 uniform lowp int u_maskMode;
-uniform sampler2D u_fbTex;
+
+uniform float u_opacity;
+
 uniform vec2 u_eTL;
 uniform vec2 u_eTR;
 uniform vec2 u_eBL;
@@ -68,7 +71,7 @@ bool outOf01Range(vec2 pos) {
 
 void main() {
     if (u_mode == 1) { // 1:1 copy
-        gl_FragColor = texture2D(u_texture, v_texturePos);
+        gl_FragColor = texture2D(t_texture, v_texturePos);
         gl_FragColor.a *= u_opacity;
         if (outOf01Range(v_texturePos)) {
             gl_FragColor = vec4(0, 0, 0, 0); //transparent
@@ -78,19 +81,21 @@ void main() {
         if (outOf01Range(texPix)) {
             gl_FragColor = vec4(0, 0, 0, 0); //transparent
         } else {
-            gl_FragColor = texture2D(u_fbTex, texPix);
+            gl_FragColor = texture2D(t_fbTex, texPix);
             float alpha = 1.;
             //maskMode == 0 //disable mask
             if (u_maskMode == 1) { //red
-                alpha = texture2D(u_mask, v_texturePos).r;
+                alpha = texture2D(t_mask, v_texturePos).r;
             } else if (u_maskMode == 2) { //green
-                alpha = texture2D(u_mask, v_texturePos).g;
+                alpha = texture2D(t_mask, v_texturePos).g;
             } else if (u_maskMode == 3) { //blue
-                alpha = texture2D(u_mask, v_texturePos).b;
+                alpha = texture2D(t_mask, v_texturePos).b;
             } else if (u_maskMode == 4) { //alpha
-                alpha = texture2D(u_mask, v_texturePos).a;
+                alpha = texture2D(t_mask, v_texturePos).a;
             }
             gl_FragColor.a = alpha > .5 ? 1. : 0.;
         }
     }
+
+    gl_FragColor = vec4(1, 0, 0, 1);
 }

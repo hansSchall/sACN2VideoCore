@@ -1,5 +1,5 @@
-import { Elm } from "./Elm";
-import { compileShader, resizeCanvasToDisplaySize, undefinedMsg } from "./glUtils";
+import { Elm } from "./components/elm";
+import { compileShader, mat3, undefinedMsg } from "./glUtils";
 import vertexCode from "./shader/vertex.shader";
 import fragmentCode from "./shader/fragment.shader";
 
@@ -30,7 +30,7 @@ export class sACN2VideoCore {
         return [this.target.width, this.target.height];
     }
 
-    private readonly ctx: WebGL2RenderingContext;
+    readonly ctx: WebGL2RenderingContext;
     /// @ts-expect-error
     private lg: {
         pr: WebGLProgram,
@@ -43,7 +43,7 @@ export class sACN2VideoCore {
         maskTex: WebGLTexture,
 
     };
-    private elms = new Map<string, Elm>();
+    readonly elms = new Map<string, Elm>();
     private renderorder: string[] = [];
     private rendertime: number[] = [];
     public setPrescaler(prescaler: number) {
@@ -65,9 +65,6 @@ export class sACN2VideoCore {
 
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-        window.addEventListener("resize", () => gl && resizeCanvasToDisplaySize(this.target, gl));
-        resizeCanvasToDisplaySize(this.target, gl)
 
         const program = compileShader(gl, vertexCode, fragmentCode);
         gl.useProgram(program);
@@ -155,6 +152,20 @@ export class sACN2VideoCore {
         const gl = this.ctx;
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+
+        gl.uniformMatrix3fv(this.getUniform("u_el_transform"), false, mat3.empty)
+        gl.uniformMatrix3fv(this.getUniform("u_tex_transform"), false, mat3.empty)
+
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
 
 
 
