@@ -15,6 +15,10 @@ module.exports = {
                 test: /\.shader$/,
                 type: "asset/source",
             },
+            {
+                test: /\.jpg/,
+                type: 'asset/resource',
+            },
         ],
     },
     devtool: 'source-map',
