@@ -20,3 +20,15 @@ export class Assetmgr {
         return this.db.get(id);
     }
 }
+
+export class AssetHandle {
+    readonly onUpdate = new SmallEv();
+    private data_: string = "";
+    public get data() {
+        return this.data_;
+    }
+    public set data(data: string) {
+        this.data_ = data;
+        this.onUpdate.emit();
+    }
+}

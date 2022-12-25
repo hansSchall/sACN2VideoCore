@@ -8,7 +8,6 @@ uniform sampler2D t_mask;
 uniform sampler2D t_fbTex;
 
 uniform lowp int u_mode;
-uniform lowp int u_maskMode;
 
 uniform float u_opacity;
 
@@ -16,6 +15,8 @@ uniform vec2 u_eTL;
 uniform vec2 u_eTR;
 uniform vec2 u_eBL;
 uniform vec2 u_eBR;
+
+#define u_maskMode 1
 
 // taken from https://iquilezles.org/articles/ibilinear/
 
@@ -71,6 +72,7 @@ bool outOf01Range(vec2 pos) {
 
 void main() {
     if (u_mode == 1) { // 1:1 copy
+        gl_FragColor = vec4(1, 0, 0, 1);
         gl_FragColor = texture2D(t_texture, v_texturePos);
         gl_FragColor.a *= u_opacity;
         if (outOf01Range(v_texturePos)) {
@@ -97,5 +99,4 @@ void main() {
         }
     }
 
-    gl_FragColor = vec4(1, 0, 0, 1);
 }

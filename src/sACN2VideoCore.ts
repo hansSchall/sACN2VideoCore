@@ -36,8 +36,6 @@ export class sACN2VideoCore {
         pr: WebGLProgram,
         objPosLoc: number,
         objPosBuf: WebGLBuffer,
-        texPosLoc: number,
-        texPosBuf: WebGLBuffer,
         fb: WebGLFramebuffer,
         fbTex: WebGLTexture,
         maskTex: WebGLTexture,
@@ -76,7 +74,7 @@ export class sACN2VideoCore {
             "t_fbTex",
             "t_mask",
             "u_mode",
-            "u_maskMode",
+            "u_zind",
             "u_opacity",
             "u_eTL",
             "u_eTR",
@@ -88,9 +86,7 @@ export class sACN2VideoCore {
             .forEach(uname => this.uniforms.set(uname, undefinedMsg(gl?.getUniformLocation(program, uname), `failed to resolve uniform ${uname}`)));
         this.lg = {
             objPosLoc: gl.getAttribLocation(program, "a_objectPos"),
-            texPosLoc: gl.getAttribLocation(program, "a_texturePos"),
             objPosBuf: undefinedMsg(gl.createBuffer(), "buffer creation failed"),
-            texPosBuf: undefinedMsg(gl.createBuffer(), "buffer creation failed"),
             fb: undefinedMsg(gl.createFramebuffer(), "framebuffer creation failed"),
             fbTex: undefinedMsg(gl.createTexture(), "texture creation failed"),
             maskTex: undefinedMsg(gl.createTexture(), "texture creation failed"),
@@ -116,7 +112,7 @@ export class sACN2VideoCore {
         gl.uniform1i(this.getUniform("t_mask"), 2);
         gl.activeTexture(gl.TEXTURE1);
         gl.uniform1i(this.getUniform("u_mode"), 0);
-        gl.uniform1i(this.getUniform("u_maskMode"), 1);
+        gl.uniform1f(this.getUniform("u_zind"), 0);
         gl.uniform2f(this.getUniform("u_eTL"), 0, 0);
         gl.uniform2f(this.getUniform("u_eTR"), 1, 0);
         gl.uniform2f(this.getUniform("u_eBL"), 0, 1);
@@ -125,10 +121,10 @@ export class sACN2VideoCore {
         gl.vertexAttribPointer(this.lg.objPosLoc, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(this.lg.objPosLoc);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1]), gl.STATIC_DRAW);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.lg.texPosBuf);
-        gl.vertexAttribPointer(this.lg.texPosLoc, 2, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(this.lg.texPosLoc);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1]), gl.STATIC_DRAW);
+        // gl.bindBuffer(gl.ARRAY_BUFFER, this.lg.texPosBuf);
+        // gl.vertexAttribPointer(this.lg.texPosLoc, 2, gl.FLOAT, false, 0, 0);
+        // gl.enableVertexAttribArray(this.lg.texPosLoc);
+        // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1]), gl.STATIC_DRAW);
 
         gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -162,14 +158,30 @@ export class sACN2VideoCore {
         gl.activeTexture(gl.TEXTURE2);
         gl.bindTexture(gl.TEXTURE_2D, null);
 
-        gl.uniformMatrix3fv(this.getUniform("u_el_transform"), false, mat3.empty)
-        gl.uniformMatrix3fv(this.getUniform("u_tex_transform"), false, mat3.empty)
+        gl.uniformMatrix3fv(this.getUniform("u_el_transform"), false, mat3.empty);
+        gl.uniformMatrix3fv(this.getUniform("u_tex_transform"), false, mat3.empty);
 
         gl.drawArrays(gl.TRIANGLES, 0, 6);
 
+        gl.uniform1i(this.getUniform("u_mode"), 1);
 
+        for (let [id, elm] of this.elms) {
+            if (elm.getOpacity() < 0.01) {
+                continue;
+            }
+
+            gl.activeTexture(gl.TEXTURE0);
+            elm.bindTex();
+            gl.uniformMatrix3fv(this.getUniform("u_el_transform"), false, elm.getElTransform());
+            gl.uniformMatrix3fv(this.getUniform("u_tex_transform"), false, elm.getTexTransform());
+            gl.uniform1f(this.getUniform("u_opacity"), elm.getOpacity());
+
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+        }
 
         // render
+
+
 
 
         this.rendertime.push(performance.now() - renderstart);
