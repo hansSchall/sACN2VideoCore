@@ -72,9 +72,9 @@ export class sACN2VideoCore {
         console.log(`%c created WebGL shaders`, "color: #0f0");
 
         [
-            "u_texture",
-            "u_fbTex",
-            "u_mask",
+            "t_texture",
+            "t_fbTex",
+            "t_mask",
             "u_mode",
             "u_maskMode",
             "u_opacity",
@@ -107,13 +107,13 @@ export class sACN2VideoCore {
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.lg.fb);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.lg.fbTex, 0);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.uniform1i(this.getUniform("u_texture"), 0);
+        gl.uniform1i(this.getUniform("t_texture"), 0);
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, this.lg.fbTex);
-        gl.uniform1i(this.getUniform("u_fbTex"), 1);
+        gl.uniform1i(this.getUniform("t_fbTex"), 1);
         gl.activeTexture(gl.TEXTURE2);
         gl.bindTexture(gl.TEXTURE_2D, this.lg.maskTex);
-        gl.uniform1i(this.getUniform("u_mask"), 2);
+        gl.uniform1i(this.getUniform("t_mask"), 2);
         gl.activeTexture(gl.TEXTURE1);
         gl.uniform1i(this.getUniform("u_mode"), 0);
         gl.uniform1i(this.getUniform("u_maskMode"), 1);
