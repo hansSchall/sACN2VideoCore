@@ -161,12 +161,10 @@ export class sACN2VideoCore {
         gl.uniformMatrix3fv(this.getUniform("u_el_transform"), false, mat3.empty);
         gl.uniformMatrix3fv(this.getUniform("u_tex_transform"), false, mat3.empty);
 
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
-
         gl.uniform1i(this.getUniform("u_mode"), 1);
 
         for (let [id, elm] of this.elms) {
-            if (elm.getOpacity() < 0.01) {
+            if (elm.getOpacity() < 0.01) { // < 1%
                 continue;
             }
 

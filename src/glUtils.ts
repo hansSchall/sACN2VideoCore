@@ -105,12 +105,12 @@ export function mergeTransformMatrix(a: mat3 | null, b: mat3 | null): mat3 {
 }
 
 export function pos2mat3(pos: Pos): mat3 {
-    const [sx, tx] = sizePos2scaleTranslate(pos.w, pos.x);
-    const [sy, ty] = sizePos2scaleTranslate(pos.h, pos.y);
-    return mat3.multiply(mat3.scaling(sx, sy), mat3.translation(tx, ty));
+    const tx = sizePos2translate(pos.w, pos.x);
+    const ty = sizePos2translate(pos.h, pos.y);
+    return mat3.multiply(mat3.scaling(pos.w, pos.h), mat3.translation(tx, ty));
 }
-function sizePos2scaleTranslate(size: number, pos: number): [number, number] {
-    return [size, 1 - (1 / size) + pos * (2 / size)]
+function sizePos2translate(size: number, pos: number): number {
+    return 1 - (1 / size) + (1 - pos - size) * (2 / size)
 }
 
 

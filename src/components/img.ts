@@ -22,12 +22,8 @@ export class ElImg extends Drawable {
     protected updatedElTransform(transforms: mat3[] = []): void {
         super.updatedElTransform([
             ...transforms,
-            // mat3.scaling(0.5, .5),
-            // mat3.rotation(30, "deg"),
         ])
     }
-
-
 
     protected img = new Image();
 }
