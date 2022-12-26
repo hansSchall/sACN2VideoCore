@@ -20,6 +20,7 @@ export class sACN2VideoCore {
             this.onFps?.(this.fps * 2);
             this.fps = 0;
         }, 500);
+
     }
 
     public onFps: (fps: number) => void = () => { };
@@ -118,7 +119,7 @@ export class sACN2VideoCore {
         gl.activeTexture(gl.TEXTURE1);
         gl.uniform1i(this.getUniform("u_mode"), 0);
         gl.uniform1f(this.getUniform("u_zind"), 0);
-        gl.uniform2f(this.getUniform("u_eTL"), 0, 0);
+        gl.uniform2f(this.getUniform("u_eTL"), .2, 0);
         gl.uniform2f(this.getUniform("u_eTR"), 1, 0);
         gl.uniform2f(this.getUniform("u_eBL"), 0, 1);
         gl.uniform2f(this.getUniform("u_eBR"), 1, 1);
@@ -168,12 +169,14 @@ export class sACN2VideoCore {
 
         gl.uniform1i(this.getUniform("u_mode"), 1);
 
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.lg.fb);
+
+        gl.activeTexture(gl.TEXTURE0);
         for (let [id, elm] of this.elms) {
             if (elm.getOpacity() < 0.01) { // < 1%
                 continue;
             }
 
-            gl.activeTexture(gl.TEXTURE0);
             elm.bindTex();
             gl.uniformMatrix3fv(this.getUniform("u_el_transform"), false, elm.getElTransform());
             gl.uniformMatrix3fv(this.getUniform("u_tex_transform"), false, elm.getTexTransform());
@@ -182,8 +185,20 @@ export class sACN2VideoCore {
             gl.drawArrays(gl.TRIANGLES, 0, 6);
         }
 
-        // render
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, this.lg.fbTex);
+        gl.activeTexture(gl.TEXTURE2);
+        this.maskImg.bindTex();
 
+
+        gl.uniformMatrix3fv(this.getUniform("u_el_transform"), false, mat3.empty);
+        gl.uniformMatrix3fv(this.getUniform("u_tex_transform"), false, mat3.empty);
+
+        gl.uniform1i(this.getUniform("u_mode"), (((performance.now() / 1000) % 2) > 1) ? 2 : 3);
+
+        gl.uniform1f(this.getUniform("u_opacity"), .4);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
 
 
 

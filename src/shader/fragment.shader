@@ -8,7 +8,6 @@ uniform sampler2D t_mask;
 uniform sampler2D t_fbTex;
 
 uniform lowp int u_mode;
-
 uniform float u_opacity;
 
 uniform vec2 u_eTL;
@@ -18,11 +17,11 @@ uniform vec2 u_eBR;
 
 #define u_maskMode 1
 
-// taken from https://iquilezles.org/articles/ibilinear/
+// following two functions taken from https://iquilezles.org/articles/ibilinear/
 
 float cross2d(in vec2 a, in vec2 b) { return a.x * b.y - a.y * b.x; }
 
-vec2 transform3D(in vec2 p, in vec2 a, in vec2 b, in vec2 c, in vec2 d)
+vec2 inverseBilinear(in vec2 p, in vec2 a, in vec2 b, in vec2 c, in vec2 d)
 {
     vec2 res = vec2(-1.0);
 
@@ -62,6 +61,13 @@ vec2 transform3D(in vec2 p, in vec2 a, in vec2 b, in vec2 c, in vec2 d)
     return res;
 }
 
+vec2 bilinear(in vec2 p, in vec2 a, in vec2 b, in vec2 c, in vec2 d) {
+    vec2 _p = a + (b - a) * p.x;
+    vec2 _q = d + (c - d) * p.x;
+    return _p + (_q - _p) * p.y;
+    // return b + (b - a) * p.x + (d - a) * p.y + ((a - b) + (c - d)) * p.x * p.y;
+}
+
 bool outOf01Range(vec2 pos) {
     if (pos.x < 0. || pos.x > 1. || pos.y < 0. || pos.y > 1.) {
         return true;
@@ -71,32 +77,55 @@ bool outOf01Range(vec2 pos) {
 }
 
 void main() {
-    if (u_mode == 1) { // 1:1 copy
-        gl_FragColor = vec4(1, 0, 0, 1);
+    if (u_mode == 1) { // 1:1 copy t_texture
         gl_FragColor = texture2D(t_texture, v_texturePos);
         gl_FragColor.a *= u_opacity;
         if (outOf01Range(v_texturePos)) {
             gl_FragColor = vec4(0, 0, 0, 0); //transparent
         }
-    } else if (u_mode == 2) {
-        vec2 texPix = transform3D(v_texturePos, u_eTL, u_eTR, u_eBR, u_eBL);
+    } else if (u_mode == 2) { // inverse bilinear
+        vec2 flipedTexPos = v_texturePos * vec2(1, -1) + vec2(0, 1);
+        vec2 texPix = inverseBilinear(flipedTexPos, u_eTL, u_eTR, u_eBR, u_eBL);
         if (outOf01Range(texPix)) {
             gl_FragColor = vec4(0, 0, 0, 0); //transparent
         } else {
+            vec4 maskColor = texture2D(t_mask, flipedTexPos);
             gl_FragColor = texture2D(t_fbTex, texPix);
             float alpha = 1.;
             //maskMode == 0 //disable mask
             if (u_maskMode == 1) { //red
-                alpha = texture2D(t_mask, v_texturePos).r;
+                alpha = maskColor.r;
             } else if (u_maskMode == 2) { //green
-                alpha = texture2D(t_mask, v_texturePos).g;
+                alpha = maskColor.g;
             } else if (u_maskMode == 3) { //blue
-                alpha = texture2D(t_mask, v_texturePos).b;
+                alpha = maskColor.b;
             } else if (u_maskMode == 4) { //alpha
-                alpha = texture2D(t_mask, v_texturePos).a;
+                alpha = maskColor.a;
             }
             gl_FragColor.a = alpha > .5 ? 1. : 0.;
         }
+    } else if (u_mode == 3) {
+        vec2 flipedTexPos = v_texturePos * vec2(1, -1) + vec2(0, 1);
+        vec2 texPix = bilinear(flipedTexPos, u_eTL, u_eTR, u_eBR, u_eBL);
+        if (outOf01Range(texPix)) {
+            gl_FragColor = vec4(0, 0, 0, 0); //transparent
+        } else {
+            vec4 maskColor = texture2D(t_mask, texPix);
+            gl_FragColor = texture2D(t_fbTex, flipedTexPos);
+            float maskValue = 1.;
+            if (u_maskMode == 1) { //red
+                maskValue = maskColor.r;
+            } else if (u_maskMode == 2) { //green
+                maskValue = maskColor.g;
+            } else if (u_maskMode == 3) { //blue
+                maskValue = maskColor.b;
+            } else if (u_maskMode == 4) { //alpha
+                maskValue = maskColor.a;
+            }
+            gl_FragColor *= maskValue > .5 ? 1. : u_opacity;
+            gl_FragColor.a = 1.;
+        }
+    } else if (u_mode == 4) {// 1:1 copy framebuffer
+        gl_FragColor = texture2D(t_fbTex, v_texturePos * vec2(1, -1) + vec2(0, 1));
     }
-
 }

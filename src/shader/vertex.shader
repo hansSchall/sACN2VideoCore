@@ -4,18 +4,21 @@ varying vec2 v_texturePos;
 
 uniform lowp int u_mode;
 uniform lowp float u_zind;
+uniform lowp int u_flip;
 
 uniform mat3 u_el_transform;
 
 uniform mat3 u_tex_transform;
 
+#define FLIP false
+
 // 0 to 1 > -1 to 1
 vec2 tex2clip(vec2 pos) {
-    return (pos * -2. + 1.);
+    return FLIP ? (pos * -2. + 1.) : (pos * 2. - 1.);
 }
 // -1 to 1 > 0 to 1
 vec2 clip2tex(vec2 pos) {
-    return ((pos - 1.) / -2.);
+    return FLIP ? ((pos - 1.) / -2.) : ((pos + 1.) / 2.);
 }
 
 void main() {
