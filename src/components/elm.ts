@@ -1,8 +1,8 @@
 import { sACN2VideoCore } from "../sACN2VideoCore";
 
 export abstract class Elm {
-    constructor(readonly ctx: sACN2VideoCore) {
-
+    constructor(readonly ctx: sACN2VideoCore, public readonly id: string) {
+        ctx.elms.set(this.id, this);
     }
 
     public abstract bindTex(): void;

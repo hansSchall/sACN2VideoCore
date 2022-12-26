@@ -4,8 +4,8 @@ import { Drawable } from "./drawable";
 import { Elm } from "./elm";
 
 export class ElAudio extends Elm {
-    constructor(ctx: sACN2VideoCore) {
-        super(ctx);
+    constructor(ctx: sACN2VideoCore, id: string) {
+        super(ctx, id);
     }
 
     public bindTex(): void {

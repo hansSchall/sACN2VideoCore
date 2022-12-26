@@ -11,10 +11,8 @@ async function init() {
     const imgSrc = new AssetHandle();
     imgSrc.data = img0;
 
-    const img = new ElImg(s2v, imgSrc);
+    const img = new ElImg(s2v, "testbild", imgSrc);
 
     img.opacity = 1;
-
-    s2v.elms.set("testbild", img);
 }
 window.addEventListener("load", init);

@@ -4,8 +4,8 @@ import { Elm } from "./elm";
 
 export abstract class Drawable extends Elm {
 
-    constructor(ctx: sACN2VideoCore) {
-        super(ctx);
+    constructor(ctx: sACN2VideoCore, id: string) {
+        super(ctx, id);
         const gl = ctx.ctx;
         this.tex = undefinedMsg(gl.createTexture(), "texture creation failed");
         gl.bindTexture(gl.TEXTURE_2D, this.tex);
