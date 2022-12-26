@@ -42,4 +42,9 @@ module.exports = {
         path: path.resolve(__dirname, 'dist'),
         clean: true
     },
+
+    devServer: {
+        compress: true,
+        port: 80,
+    },
 };
