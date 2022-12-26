@@ -5,7 +5,7 @@ import fragmentCode from "./shader/fragment.shader";
 import { MaskImg } from "./components/maskimg";
 import { AssetHandle } from "./assetmgr";
 
-export class sACN2VideoCore {
+export abstract class sACN2VideoCore {
     constructor(readonly target: HTMLCanvasElement, width: number = 1920, height: number = 1080) {
         this.setCvSize(width, height);
         const ctx = target.getContext("webgl2") || undefined;
@@ -14,7 +14,7 @@ export class sACN2VideoCore {
         } else {
             this.ctx = ctx;
         }
-        this.maskImg = new MaskImg(this, this.maskImgSrc);
+
         this.initGL().then(this.runRender.bind(this));
         setInterval(() => {
             this.onFps?.(this.fps * 2);
@@ -36,7 +36,7 @@ export class sACN2VideoCore {
 
     readonly ctx: WebGL2RenderingContext;
     /// @ts-expect-error
-    private lg: {
+    protected lg: {
         pr: WebGLProgram,
         objPosLoc: number,
         objPosBuf: WebGLBuffer,
@@ -46,21 +46,19 @@ export class sACN2VideoCore {
 
     };
     readonly elms = new Map<string, Elm>();
-    private renderorder: string[] = [];
-    private rendertime: number[] = [];
+    protected rendertime: number[] = [];
     public setPrescaler(prescaler: number) {
         this.prescaler = prescaler;
     }
-    readonly maskImgSrc = new AssetHandle();
-    private maskImg: MaskImg;
 
-    private prescaler = 1;
-    private prescaleCounter = 1;
-    private fps = 0;
-    private readonly uniforms = new Map<string, WebGLUniformLocation>();
-    private frameBufferSize = [window.screen.height, window.screen.width];
 
-    private getUniform(name: string) {
+    protected prescaler = 1;
+    protected prescaleCounter = 1;
+    protected fps = 0;
+    protected readonly uniforms = new Map<string, WebGLUniformLocation>();
+    protected frameBufferSize = [window.screen.height, window.screen.width];
+
+    protected getUniform(name: string) {
         return undefinedMsg(this.uniforms.get(name), `'${name}' was not resolved during lookup`)
     }
 
@@ -185,20 +183,7 @@ export class sACN2VideoCore {
             gl.drawArrays(gl.TRIANGLES, 0, 6);
         }
 
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, this.lg.fbTex);
-        gl.activeTexture(gl.TEXTURE2);
-        this.maskImg.bindTex();
-
-
-        gl.uniformMatrix3fv(this.getUniform("u_el_transform"), false, mat3.empty);
-        gl.uniformMatrix3fv(this.getUniform("u_tex_transform"), false, mat3.empty);
-
-        gl.uniform1i(this.getUniform("u_mode"), (((performance.now() / 1000) % 2) > 1) ? 2 : 3);
-
-        gl.uniform1f(this.getUniform("u_opacity"), .4);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        this.renderMask(gl);
 
 
 
@@ -210,5 +195,7 @@ export class sACN2VideoCore {
         this.fps++;
         this.runRender();
     }
+
+    protected abstract renderMask(gl: WebGL2RenderingContext): void;
 
 }
