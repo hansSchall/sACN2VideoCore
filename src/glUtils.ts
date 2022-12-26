@@ -110,7 +110,7 @@ export function pos2mat3(pos: Pos): mat3 {
     return mat3.multiply(mat3.scaling(pos.w, pos.h), mat3.translation(tx, ty));
 }
 function sizePos2translate(size: number, pos: number): number {
-    return 1 - (1 / size) + (1 - pos - size) * (2 / size)
+    return 1 - (1 / size) + (1 - pos - size) * (2 / size);
 }
 
 
