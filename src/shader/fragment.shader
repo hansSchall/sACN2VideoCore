@@ -2,6 +2,7 @@ precision lowp float;
 precision lowp int;
 
 varying vec2 v_texturePos;
+varying vec2 v_textureGlobalPos;
 
 uniform sampler2D t_texture;
 uniform sampler2D t_mask;
@@ -105,7 +106,7 @@ void main() {
             gl_FragColor.a = alpha > .5 ? 1. : 0.;
         }
     } else if (u_mode == 3) {
-        vec2 flipedTexPos = v_texturePos * vec2(1, -1) + vec2(0, 1);
+        vec2 flipedTexPos = v_textureGlobalPos * vec2(1, -1) + vec2(0, 1);
         vec2 texPix = bilinear(flipedTexPos, u_eTL, u_eTR, u_eBR, u_eBL);
         if (outOf01Range(texPix)) {
             gl_FragColor = vec4(0, 0, 0, 0); //transparent

@@ -1,6 +1,7 @@
 attribute vec2 a_objectPos;
 
 varying vec2 v_texturePos;
+varying vec2 v_textureGlobalPos;
 
 uniform lowp int u_mode;
 uniform lowp float u_zind;
@@ -24,4 +25,5 @@ vec2 clip2tex(vec2 pos) {
 void main() {
     gl_Position = vec4((u_el_transform * vec3(tex2clip(a_objectPos), 1)).xy, u_zind, 1);
     v_texturePos = clip2tex((u_tex_transform * vec3(tex2clip(a_objectPos), 1.)).xy);
+    v_textureGlobalPos = clip2tex((u_el_transform * vec3(tex2clip(a_objectPos), 1.)).xy);
 }
