@@ -14,5 +14,11 @@ async function init() {
     const img = new ElImg(s2v, "testbild", imgSrc);
 
     img.opacity = 1;
+    img.pos = {
+        x: .25,
+        y: .5,
+        h: .25,
+        w: .5,
+    }
 }
 window.addEventListener("load", init);

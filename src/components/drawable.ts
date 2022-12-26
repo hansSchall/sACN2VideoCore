@@ -1,3 +1,4 @@
+import { clone } from "lodash-es";
 import { mat3, Pos, pos2mat3, undefinedMsg } from "../glUtils";
 import { sACN2VideoCore } from "../sACN2VideoCore";
 import { Elm } from "./elm";
@@ -31,6 +32,13 @@ export abstract class Drawable extends Elm {
         y: 0,
         w: 1,
         h: 1,
+    }
+    get pos() {
+        return clone(this.position);
+    }
+    set pos(pos: Pos) {
+        this.position = clone(pos);
+        this.updatedElTransform();
     }
 
     private elTransform: mat3 = mat3.empty;
