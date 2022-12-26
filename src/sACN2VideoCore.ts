@@ -2,6 +2,8 @@ import { Elm } from "./components/elm";
 import { compileShader, mat3, undefinedMsg } from "./glUtils";
 import vertexCode from "./shader/vertex.shader";
 import fragmentCode from "./shader/fragment.shader";
+import { MaskImg } from "./components/maskimg";
+import { AssetHandle } from "./assetmgr";
 
 export class sACN2VideoCore {
     constructor(readonly target: HTMLCanvasElement, width: number = 1920, height: number = 1080) {
@@ -12,6 +14,7 @@ export class sACN2VideoCore {
         } else {
             this.ctx = ctx;
         }
+        this.maskImg = new MaskImg(this, this.maskImgSrc);
         this.initGL().then(this.runRender.bind(this));
         setInterval(() => {
             this.onFps?.(this.fps * 2);
@@ -47,6 +50,8 @@ export class sACN2VideoCore {
     public setPrescaler(prescaler: number) {
         this.prescaler = prescaler;
     }
+    readonly maskImgSrc = new AssetHandle();
+    private maskImg: MaskImg;
 
     private prescaler = 1;
     private prescaleCounter = 1;
